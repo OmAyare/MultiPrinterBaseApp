@@ -27,19 +27,39 @@ namespace BaseApp.ViewModels
         public ICommand StopCommand { get; set; }
         public ICommand SendCommand { get; }
 
+        private string _ipAddress;
+        public string IpAddress
+        {
+            get => _ipAddress;
+            set
+            {
+                _ipAddress = value;
+                OnPropertyChanged(nameof(IpAddress));
+            }
+        }
+        private int _port;
+        public int Port
+        {
+            get => _port;
+            set
+            {
+                _port = value;
+                OnPropertyChanged(nameof(Port));
+            }
+        }
 
 
-        private string FilePath;
-        public string filepath
+        private string filePath;
+        public string FilePath
         {
             get
             {
-                return this.FilePath;
+                return filePath;
             }
             set
             {
-                this.FilePath = value;
-                this.OnPropertyChanged("filepath");
+                filePath = value;
+                OnPropertyChanged("FilePath");
             }
         }
 
@@ -86,7 +106,8 @@ namespace BaseApp.ViewModels
                 OnPropertyChanged(nameof(Templates));  // Ensure this triggers the ComboBox update
             }
         }
-  
+
+
 
         private string _selectedTemplate;
         public string SelectedTemplate
@@ -119,7 +140,7 @@ namespace BaseApp.ViewModels
             {
                 _printedRowCount = value;
                 OnPropertyChanged(nameof(PrintedRowCount));
-               
+
             }
 
         }
@@ -152,7 +173,7 @@ namespace BaseApp.ViewModels
             // Assuming you fetch settings from the database
             FetchAllSettings();
 
-           _connectionService = new ConnectionService();
+            _connectionService = new ConnectionService();
             Templates = new ObservableCollection<string>();
             StartCommand = new RelayCommand(SendStartCommand);
             StopCommand = new RelayCommand(SendStopCommand);
@@ -170,6 +191,8 @@ namespace BaseApp.ViewModels
                 }
             });
 
+
+
             ConnectCommand = new DelegateCommand(async (param) =>
             {
                 try
@@ -183,63 +206,59 @@ namespace BaseApp.ViewModels
                         return;
                     }
 
-                    // Assuming you want to use the first setting from the list
-                    var selectedSetting = settingsList.FirstOrDefault();
-                    //var selectedSetting = settingsList;
-
-                    if (selectedSetting == null)
+                    // Loop through each printer setting in the list
+                    foreach (var printer in settingsList)
                     {
-                        System.Windows.MessageBox.Show("Settings not found in the database. Please ensure the database contains valid settings.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                   
-                    PName = selectedSetting.PName;
-                    string ipAddress = selectedSetting.IpAddress;
-                    int port = selectedSetting.Port;
-
-
-
-                    bool isConnected = _connectionService.Connect(ipAddress, port);
-                    if (isConnected)
-                    {
-                        System.Windows.MessageBox.Show("Connected to the server successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                        if (_connectionService != null && _connectionService.IsConnected)
+                        try
                         {
-                            string command = "GJL<CR>";
-                            _connectionService.Send(command);
-                        }
+                            string ipAddress = printer.IpAddress;
+                            int port = printer.Port;
+                            string printerName = printer.PName;
 
-                        string response = await _connectionService.Receive();
-                        ParseTemplatesFromResponse(response);
-                    }
-                    else
-                    {
-                        System.Windows.MessageBox.Show("Failed to connect to the server.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            // Show a message box indicating which printer we are connecting to
+                            System.Windows.MessageBox.Show($"Connecting to Printer: {printerName} (IP: {ipAddress}, Port: {port})", "Connecting", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            // Now connect to each printer using the respective IP and Port
+                            bool isConnected = _connectionService.Connect(ipAddress, port);
+
+                            if (isConnected)
+                            {
+                                // Show success message
+                                System.Windows.MessageBox.Show($"Successfully connected to {printerName}!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                                if (_connectionService.IsConnected)
+                                {
+                                    // Send the command after successful connection
+                                    string command = "GJL<CR>"; // Sample command, replace with your actual command
+                                    _connectionService.Send(command);
+
+                                    // Receive response and parse it
+                                    string response = await _connectionService.Receive();
+                                    ParseTemplatesFromResponse(response);
+                                }
+                            }
+                            else
+                            {
+                                // Show failure message if connection fails
+                                System.Windows.MessageBox.Show($"Failed to connect to {printerName} at {ipAddress}:{port}.", "Connection Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                            }
+                        }
+                        catch (Exception innerEx)
+                        {
+                            // Handle individual printer connection errors
+                            System.Windows.MessageBox.Show($"Error while connecting to {printer.PName}: {innerEx.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                 }
                 catch (Exception ex)
                 {
+                    // Handle overall connection errors
                     System.Windows.MessageBox.Show($"Error while connecting to the server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             });
+
         }
 
-        // Fetch all entries from the database (Modify based on your actual service)
-        private async void FetchAllSettings()
-        {
-            var settingService = new SettingService();
-            var settingsList = await settingService.GetAll();
-
-            if (settingsList != null && settingsList.Any())
-            {
-                Settings = new ObservableCollection<Settings>(settingsList);
-            }
-            else
-            {
-                // Handle no data or show a message if needed
-            }
-        }
 
         private void ParseTemplatesFromResponse(string response)
         {
@@ -267,11 +286,11 @@ namespace BaseApp.ViewModels
                 System.Windows.MessageBox.Show($"Error parsing response: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        private DataTable ReadExcel(string excelPath)
+        private DataTable ReadExcel(string filePath)
         {
             try
             {
-                var workbook = new XLWorkbook(excelPath);
+                var workbook = new XLWorkbook(filePath);
                 var worksheet = workbook.Worksheet(1);
                 return worksheet.RangeUsed().AsTable().AsNativeDataTable();
             }
@@ -322,7 +341,7 @@ namespace BaseApp.ViewModels
             {
                 System.Windows.MessageBox.Show($"Failed to send command: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }  
+        }
         private async void SendStopCommand()
         {
             try
@@ -470,10 +489,12 @@ namespace BaseApp.ViewModels
             formattedRow.Append("|<CR>");
             return formattedRow.ToString();
         }
+
         private void StoreDataInNewFile(string newFilePath)
         {
             try
             {
+
                 var newWorkbook = new XLWorkbook();
                 var newWorksheet = newWorkbook.AddWorksheet("StoredData");
 
@@ -504,11 +525,13 @@ namespace BaseApp.ViewModels
             }
         }
 
+
         // Remove the selected data from the original ExcelData DataTable
         private void RemoveSelectedDataFromOriginal()
         {
             try
             {
+
                 // Assuming the "Status" column is used to identify highlighted rows
                 var rowsToRemove = ExcelData.Select("Status = 'Acknowledged'").ToList();
 
@@ -524,6 +547,20 @@ namespace BaseApp.ViewModels
             {
                 System.Windows.MessageBox.Show($"Failed to remove selected data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+
+        private async void FetchAllSettings()
+        {
+            var settingService = new SettingService();
+            var settingsList = await settingService.GetAll();
+
+            if (settingsList != null && settingsList.Any())
+            {
+                Settings = new ObservableCollection<Settings>(settingsList);
+
+            }
+
         }
     }
 }

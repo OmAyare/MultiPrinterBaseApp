@@ -11,6 +11,7 @@
     d:DesignHeight="450"
     d:DesignWidth="1000"
     mc:Ignorable="d">
+
     <UserControl.Resources>
         <Converters:InvertValueVisibilityConverter x:Key="InvertValueVisibilityConverter" />
         <Converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
@@ -110,38 +111,65 @@
                 </Border>
             </Grid>
         </Border>
-        <!--<ListBox ItemsSource="{Binding Settings}" Margin="10" Grid.Row="2">
-            <ListBox.ItemTemplate>
-                <DataTemplate>-->
-        <ListView x:Name="listView" ItemsSource="{Binding Settings}" Margin="10" Grid.Row="2">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Border Margin="10" Padding="10" Background="#fff">
-                        <StackPanel Orientation="Horizontal">                       
-                            <TextBlock Text="{Binding PName}" Width="60" Margin="4" FontWeight="SemiBold" TextAlignment="Center" FontSize="15" />
+        <!--<Border
+            Grid.Row="2"
+            Margin="15,0"
+            Padding="15,10"
+            VerticalAlignment="Stretch"
+            Background="#fff">
+            <StackPanel Orientation="Horizontal">
 
-                            <TextBox MinWidth="200"  Text="{Binding Path=BindingContext.filepath, UpdateSourceTrigger=PropertyChanged ,RelativeSource={RelativeSource AncestorType=ListView}}"  />
-                            <Button  Command="{Binding DataContext.OpenFileDialog, RelativeSource={RelativeSource AncestorType=ListView}}" Content="Browse" />
-       
+                <TextBlock Text="{Binding PName}" Width="60" Margin="4" FontWeight="SemiBold" TextAlignment="Center" FontSize="15" />
+
+                <TextBox MinWidth="200" Text="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Command="{Binding OpenFileDialog}" Content="Browse" />
+
+                <Label Content="Select Template"  FontSize="12" FontWeight="Bold" />
+                <ComboBox Name="Templatetxt"
+                     ItemsSource="{Binding Templates}"
+                      SelectedItem="{Binding SelectedTemplate, Mode=TwoWay}">
+                </ComboBox>
+                <Button Command="{Binding StartCommand}"  Content="Start" Margin="40,0,10,0" Background="MediumSeaGreen" Foreground="White"
+                   IsEnabled="{Binding IsStartButtonEnabled}" Style="{StaticResource DisabledButtonStyle}" Width="50"/>
+                <Button Command="{Binding StopCommand}" Content="Stop" Background="IndianRed" Foreground="White"
+                   IsEnabled="{Binding IsStopButtonEnabled}" Style="{StaticResource DisabledButtonStyle}"  Width="50"/>
+
+                <Button Command="{Binding ConnectCommand}" Content="Connect" Margin="130,0,0,0 " />
+                <Button Command="{Binding SendCommand}" Content="Send" />
+
+                <TextBox Width="45" Text="{Binding PrintedRowCount}" FontWeight="SemiBold" TextAlignment="Center" FontSize="15" />
+
+
+            </StackPanel>
+        </Border>-->
+
+        <ListView x:Name="listView" ItemsSource="{Binding Settings}" Margin="10" Grid.Row="2">
+            <ListView.ItemTemplate >
+
+                <DataTemplate x:Name="listBoxTemplate">
+                    <Border Margin="10" Padding="10" Background="#fff">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock  Name="PName" Text="{Binding PName, UpdateSourceTrigger=PropertyChanged}" Width="60" Margin="4" FontWeight="SemiBold" TextAlignment="Center" FontSize="15"  />
+                            <TextBox Name="txtFilepath"  MinWidth="200" Text="{Binding DataContext.FilePath, RelativeSource={RelativeSource AncestorType=ListView}, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                            <Button  Command="{Binding DataContext.OpenFileDialog, RelativeSource={RelativeSource AncestorType=ListView}}" Content="Browse" CommandParameter="{Binding}" />
+
                             <Label Content="Select Template" FontSize="12" FontWeight="Bold" />
-                            <ComboBox ItemsSource="{Binding DataContext.Templates , RelativeSource={RelativeSource AncestorType=ListView}}" SelectedItem="{Binding DataContext.SelectedTemplate, Mode=TwoWay}">
+
+                            <ComboBox ItemsSource="{Binding DataContext.Templates, RelativeSource={RelativeSource AncestorType=ListView}}" SelectedItem="{Binding DataContext.SelectedTemplate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" >
                             </ComboBox>
 
-                            <Button  Command="{Binding DataContext.StartCommand, Source={x:Reference listView}}" Content="Start" Margin="40,0,10,0" Background="MediumSeaGreen" Foreground="White" IsEnabled="{Binding DataContext.IsStartButtonEnabled, Source={x:Reference listView}}" Style="{StaticResource DisabledButtonStyle}" Width="50" CommandParameter="{Binding Port}"/>
-                            <Button  Command="{Binding DataContext.StopCommand, Source={x:Reference listView}}" Content="Stop" Background="IndianRed" Foreground="White" IsEnabled="{Binding DataContext.IsStopButtonEnabled, Source={x:Reference listView}}" Style="{StaticResource DisabledButtonStyle}" Width="50" CommandParameter="{Binding Port}" />
-                            
-                            <Button Command="{Binding DataContext.ConnectCommand, Source={x:Reference listView}}" Content="Connect" Margin="130,0,0,0 "  CommandParameter="{Binding Port}" />
-                            <Button  Command="{Binding DataContext.SendCommand, Source={x:Reference listView}}" Content="Send"  CommandParameter="{Binding Port}" />
+                            <Button Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=ListView}, UpdateSourceTrigger=PropertyChanged}" Content="Start" Margin="40,0,10,0" Background="MediumSeaGreen" Foreground="White" IsEnabled="{Binding DataContext.IsStartButtonEnabled, Source={x:Reference listView}}" Style="{StaticResource DisabledButtonStyle}" Width="50"/>
+                            <Button Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=ListView}, UpdateSourceTrigger=PropertyChanged}" Content="Stop" Background="IndianRed" Foreground="White" IsEnabled="{Binding DataContext.IsStopButtonEnabled, Source={x:Reference listView}}" Style="{StaticResource DisabledButtonStyle}" Width="50"/>
 
+                            <Button Command="{Binding DataContext.ConnectCommand, RelativeSource={RelativeSource AncestorType=ListView}}" Content="Connect" Margin="130,0,0,0" CommandParameter="{Binding IpAddress}"/>
+                            <Button Command="{Binding DataContext.SendCommand, RelativeSource={RelativeSource AncestorType=ListView}, UpdateSourceTrigger=PropertyChanged}" Content="Send" />
 
                             <TextBox Width="45" Text="{Binding DataContext.PrintedRowCount, RelativeSource={RelativeSource AncestorType=ListView}, UpdateSourceTrigger=PropertyChanged}" FontWeight="SemiBold" TextAlignment="Center" FontSize="15" />
-                        </StackPanel>   
+                        </StackPanel>
                     </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <!--</DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>-->
+
     </Grid>
 </UserControl>
