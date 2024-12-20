@@ -66,7 +66,7 @@ namespace BaseApp.ViewModels
 
             FetchAllPrinters();
 
-            selectedPrinter.Templates = new ObservableCollection<string>();
+           // selectedPrinter.Templates = new ObservableCollection<string>();
             StartCommand = new DelegateCommand(async (Printer) =>
             {
                 SendStartCommand(Printer);
@@ -444,6 +444,7 @@ namespace BaseApp.ViewModels
                     PName = s.PName,
                     IpAddress = s.IpAddress,
                     Port = s.Port,
+                    ExcelPath = s.ExcelPath,
                 }).ToList();
 
                 PrinterList = new ObservableCollection<Printer>(printerList);
