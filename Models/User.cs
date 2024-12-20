@@ -11,7 +11,6 @@ namespace BaseApp.Models
     {
         private bool _Active;
         private string _Name, _LoginID, _Password, _RoleID, _Role, _FirstLogin;
-
         public int ID { get; set; }
         public string LastLoginDate { get; set; }
         public string FirstLoginDate { get; set; }

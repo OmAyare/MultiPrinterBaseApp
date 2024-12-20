@@ -16,8 +16,6 @@ namespace BaseApp.Models
     {
         SqlConnection ObjSqlConnection;
         SqlCommand ObjSqlCommand;
-
-        private static List<Settings> ObjSettingList;
         public SettingService()
         {
             ObjSqlConnection = new SqlConnection(ConfigurationManager.ConnectionStrings["DBConnection"].ConnectionString);
@@ -26,7 +24,6 @@ namespace BaseApp.Models
             ObjSqlCommand.CommandType = CommandType.StoredProcedure;
 
         }
-
         public async Task<List<Settings>> GetAll()
         {
             List<Settings> ObjSettingList = new List<Settings>();
@@ -64,9 +61,7 @@ namespace BaseApp.Models
             }
             return ObjSettingList;
         }
-
-
-        public async Task<bool> Save(Settings ObjSetting)
+        public async Task<bool> Save(Printer ObjSetting)
         {
             return await Task.Run(() =>
             {
@@ -111,7 +106,5 @@ namespace BaseApp.Models
                 return isSaved;
             });
         }
-
-
     }
 }

@@ -87,12 +87,6 @@ namespace BaseApp.ViewModels
             }
         }
 
-        public bool IsStreamOpen()
-        {
-            return ns != null && ns.CanRead && ns.CanWrite;
-        }
-
-
         public async Task<string> Receive()
         {
             try

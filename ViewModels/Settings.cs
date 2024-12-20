@@ -16,7 +16,9 @@ namespace BaseApp.ViewModels
         SettingService ObjSettingService;
         public ICommand OpenFolderDialog { get; set; }
         public ICommand SaveCommand { get; }
+       
         public int Id { get; set; }
+
         private string _ipAddress;
         public string IpAddress
         {
@@ -56,12 +58,14 @@ namespace BaseApp.ViewModels
             get { return pName; }
             set { pName = value; OnPropertyChanged(nameof(PName)); }
         }
+
         private ObservableCollection<BaseApp.ViewModels.Settings> settingList;
         public ObservableCollection<BaseApp.ViewModels.Settings> SettingList
         {
             get { return settingList; }
             set { settingList = value; OnPropertyChanged("SettingList"); }
         }
+
         private Settings _selectedSetting;
         public Settings SelectedSetting
         {
@@ -107,7 +111,7 @@ namespace BaseApp.ViewModels
                                                         "Duplicate Port", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;// Stop execution if a duplicate is found
                     }
-                    var newSetting = new Settings
+                    var newSetting = new Printer
                     {
                         Id = this.Id,
                         PName = this.PName,

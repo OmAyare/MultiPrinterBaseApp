@@ -194,7 +194,7 @@ namespace BaseApp.ViewModels
 
                                     if (Password == dbPassword) // Validate password
                                     {
-                                        user = new Models.User
+                                        user = new Models.User 
                                         {
                                             LoginID = LoginID,
                                             Role = dbRole
