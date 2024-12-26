@@ -193,6 +193,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Models\Printer.cs" />
+    <Compile Include="Models\SettingsModel.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\SettingService.cs" />
     <Compile Include="ViewModels\Bootstrap.cs" />

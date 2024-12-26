@@ -24,9 +24,9 @@ namespace BaseApp.Models
             ObjSqlCommand.CommandType = CommandType.StoredProcedure;
 
         }
-        public async Task<List<Settings>> GetAll()
+        public async Task<List<SettingsModel>> GetAll()
         {
-            List<Settings> ObjSettingList = new List<Settings>();
+            List<SettingsModel> ObjSettingList = new List<SettingsModel>();
             try
             {
                 ObjSqlCommand.Parameters.Clear();
@@ -36,10 +36,10 @@ namespace BaseApp.Models
                 var ObjSqlDataReader = ObjSqlCommand.ExecuteReader();
                 if (ObjSqlDataReader.HasRows)
                 {
-                    Settings ObjSetting = null;
+                    SettingsModel ObjSetting = null;
                     while (ObjSqlDataReader.Read())
                     {
-                        ObjSetting = new Settings();
+                        ObjSetting = new SettingsModel();
                         ObjSetting.Id = ObjSqlDataReader.GetInt32(0);
                         ObjSetting.PName = ObjSqlDataReader.GetString(1);
                         ObjSetting.IpAddress = ObjSqlDataReader.GetString(2);
@@ -72,8 +72,7 @@ namespace BaseApp.Models
                     ObjSqlCommand.Parameters.Clear();
                     ObjSqlCommand.CommandText = "upsertSetting"; // Use the stored procedure for both insert and update.
 
-                    // Check if Id is provided (if not, insert a new record)
-                    if (ObjSetting.Id == 0 || ObjSetting.Id == null)
+                    if (ObjSetting.Id == 0 || ObjSetting.Id == null)   // Check if Id is provided (if not, insert a new record)
                     {
                         ObjSqlCommand.Parameters.AddWithValue("@Id", DBNull.Value); // NULL value for insert
                     }

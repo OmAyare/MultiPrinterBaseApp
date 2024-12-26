@@ -17,7 +17,7 @@ namespace BaseApp.ViewModels
 {
     public class Dashboard : ViewModelBase
     {
-     
+
         public ICommand OpenFileDialog { get; set; }
         public ICommand ConnectCommand { get; set; }
         public ICommand StartCommand { get; set; }
@@ -49,24 +49,13 @@ namespace BaseApp.ViewModels
                 OnPropertyChanged(nameof(PrinterList));
             }
         }
-        private Printer selectedPrinter;
-        public Printer SelectedPrinter
-        {
-            get { return selectedPrinter; }
-            set
-            {
-                selectedPrinter = value;
-                OnPropertyChanged(nameof(SelectedPrinter));
-            }
-        }
+
 
         public Dashboard()
         {
             PrinterList = new ObservableCollection<Printer>();
-
             FetchAllPrinters();
 
-           // selectedPrinter.Templates = new ObservableCollection<string>();
             StartCommand = new DelegateCommand(async (Printer) =>
             {
                 SendStartCommand(Printer);
@@ -95,7 +84,6 @@ namespace BaseApp.ViewModels
                 }
             });
 
-
             ConnectCommand = new DelegateCommand(async (param) =>
             {
                 try
@@ -103,60 +91,43 @@ namespace BaseApp.ViewModels
 
                     Printer printer = (Printer)param;
                     Printer selectedPrinter = PrinterList.FirstOrDefault(p => p.Port == printer.Port);
-                    //var settingService = new SettingService();
-                    //var settingsList = await settingService.GetAll();
-
-                    //if (settingsList == null || !settingsList.Any())
-                    //{
-                    //    System.Windows.MessageBox.Show("No settings found in the database. Please ensure the settings are configured.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    //    return;
-                    //}
-
-                    // Loop through each printer setting in the list
-                    // foreach (var printer in settingsList)
+                    try
                     {
-                        try
+                        string ipAddress = selectedPrinter.IpAddress;
+                        int port = selectedPrinter.Port;
+                        string printerName = selectedPrinter.PName;
+
+                        System.Windows.MessageBox.Show($"Connecting to Printer: {printerName} (IP: {ipAddress}, Port: {port})", "Connecting", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                        bool isConnected = selectedPrinter.SocketConnection.Connect(ipAddress, port);
+
+                        if (isConnected)
                         {
-                            string ipAddress = selectedPrinter.IpAddress;
-                            int port = selectedPrinter.Port;
-                            string printerName = selectedPrinter.PName;
+                            System.Windows.MessageBox.Show($"Successfully connected to {printerName}!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                            System.Windows.MessageBox.Show($"Connecting to Printer: {printerName} (IP: {ipAddress}, Port: {port})", "Connecting", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                            bool isConnected = selectedPrinter.SocketConnection.Connect(ipAddress, port);
-
-                            if (isConnected)
+                            if (selectedPrinter.SocketConnection.IsConnected)
                             {
-                                System.Windows.MessageBox.Show($"Successfully connected to {printerName}!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                                string command = "GJL" + CR;   // Send the command after successful connection
+                                selectedPrinter.SocketConnection.Send(command);
 
-                                if (selectedPrinter.SocketConnection.IsConnected)
-                                {
-                                    // Send the command after successful connection
-                                    string command = "GJL" + CR;
-                                    selectedPrinter.SocketConnection.Send(command);
-
-                                    // Receive response and parse it
-                                    string response = await selectedPrinter.SocketConnection.Receive();
-                                    ParseTemplatesFromResponse(response, ref selectedPrinter);
-                                }
-                            }
-                            else
-                            {
-                                // Show failure message if connection fails
-                                System.Windows.MessageBox.Show($"Failed to connect to {printerName} at {ipAddress}:{port}.", "Connection Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                                string response = await selectedPrinter.SocketConnection.Receive();  // Receive response and parse it
+                                ParseTemplatesFromResponse(response, ref selectedPrinter);
                             }
                         }
-                        catch (Exception innerEx)
+                        else
                         {
-                            // Handle individual printer connection errors
-                            System.Windows.MessageBox.Show($"Error while connecting to {printer.PName}: {innerEx.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            System.Windows.MessageBox.Show($"Failed to connect to {printerName} at {ipAddress}:{port}.", "Connection Failed", MessageBoxButton.OK, MessageBoxImage.Error);   // Show failure message if connection fails
                         }
                     }
+                    catch (Exception innerEx)
+                    {
+                        System.Windows.MessageBox.Show($"Error while connecting to {printer.PName}: {innerEx.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);  // Handle individual printer connection errors
+                    }
+
                 }
                 catch (Exception ex)
                 {
-                    // Handle overall connection errors
-                    System.Windows.MessageBox.Show($"Error while connecting to the server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show($"Error while connecting to the server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);  // Handle overall connection errors
                 }
             });
 
@@ -181,15 +152,13 @@ namespace BaseApp.ViewModels
                     {
                         selectedPrinter.Templates = new ObservableCollection<string>();
                     }
-                    //selectedPrinter.Templates.Clear();
-                    List<string> selTemplates = new List<string>();
+
+                    List<string> selTemplates = new List<string>();  //selectedPrinter.Templates.Clear();
                     foreach (var template in templates)
                     {
                         selTemplates.Add(template);
                     }
                     selectedPrinter.Templates = new ObservableCollection<string>(selTemplates);
-
-                    //System.Windows.MessageBox.Show("Templates updated successfully.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
@@ -218,8 +187,6 @@ namespace BaseApp.ViewModels
             try
             {
                 Printer selectedPrinter = (Printer)printer;
-               // Printer start = PrinterList.FirstOrDefault(p => p.Port == selectedPrinter.Port);
-
                 if (selectedPrinter.SocketConnection != null && selectedPrinter.SocketConnection.IsConnected)
                 {
                     if (string.IsNullOrEmpty(selectedPrinter.SelectedTemplate))
@@ -228,22 +195,22 @@ namespace BaseApp.ViewModels
                         return;
                     }
 
-                        string Startcommand = $"SST|1|" + CR;
-                        string Selcommand = $"SEL|{selectedPrinter.SelectedTemplate}|" + CR;
+                    string Startcommand = $"SST|1|" + CR;
+                    string Selcommand = $"SEL|{selectedPrinter.SelectedTemplate}|" + CR;
 
-                        selectedPrinter.SocketConnection.Send(Selcommand);
-                        // wait for ACK
-                        string response = await selectedPrinter.SocketConnection.Receive();
-                        if (response == "ACK")
-                        {
-                            selectedPrinter.SocketConnection.Send(Startcommand);
-                            // Set the flag to true when the Start command is sent successfully
-                            IsStartCommandSent = true;
-                        }
-                        // Disable Start button and enable Stop button
-                        selectedPrinter.IsStartButtonEnabled = false;
-                        selectedPrinter.IsStopButtonEnabled = true;
+                    selectedPrinter.SocketConnection.Send(Selcommand);
+
+                    string response = await selectedPrinter.SocketConnection.Receive();  // wait for ACK
+                    if (response == "ACK")
+                    {
+                        selectedPrinter.SocketConnection.Send(Startcommand);
+
+                        IsStartCommandSent = true;    // Set the flag to true when the Start command is sent successfully
                     }
+
+                    selectedPrinter.IsStartButtonEnabled = false;  // Disable Start button and enable Stop button
+                    selectedPrinter.IsStopButtonEnabled = true;
+                }
                 else
                 {
                     System.Windows.MessageBox.Show("Please connect to the server before starting the printer.", "Connection Required", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -264,22 +231,6 @@ namespace BaseApp.ViewModels
                     string command = "SST|4|" + CR;
                     selectedPrinter.SocketConnection.Send(command);
 
-                    // Fetch folder path from the database
-                    //var settingService = new SettingService();
-                    //var settingsList = await settingService.GetAll();
-
-                    //if (settingsList == null || !settingsList.Any())
-                    //{
-                    //    System.Windows.MessageBox.Show("No settings found in the database. Please ensure the settings are configured.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    //    return;
-                    //}
-
-                    //var selectedSetting = settingsList.FirstOrDefault();
-                    //if (selectedSetting == null || string.IsNullOrEmpty(selectedSetting.ExcelPath))
-                    //{
-                    //    System.Windows.MessageBox.Show("Folder path not found in the database. Please ensure the database contains valid settings.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    //    return;
-                    //}
                     string folderPath = selectedPrinter.ExcelPath;
 
                     if (!Directory.Exists(folderPath))
@@ -287,13 +238,13 @@ namespace BaseApp.ViewModels
                         System.Windows.MessageBox.Show($"Directory {folderPath} does not exist.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
-                    // Generate the filename based on the current date and time
-                    string fileName = $"Data_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                    string fileName = $"Data_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";  // Generate the filename based on the current date and time
                     string newFilePath = Path.Combine(folderPath, fileName);
-                    // Store the selected data in the new file
-                    StoreDataInNewFile(newFilePath , selectedPrinter);
-                    // Disable Stop button and enable Start button
-                    selectedPrinter.IsStartButtonEnabled = true;
+
+                    StoreDataInNewFile(newFilePath, selectedPrinter);    // Store the selected data in the new file
+
+                    selectedPrinter.IsStartButtonEnabled = true;    // Disable Stop button and enable Start button
                     selectedPrinter.IsStopButtonEnabled = false;
 
                     RemoveSelectedDataFromOriginal(selectedPrinter);
@@ -367,6 +318,7 @@ namespace BaseApp.ViewModels
                 System.Windows.MessageBox.Show($"Error sending row: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         // Row format
         private string FormatRowForServer(DataRow row)
         {
@@ -379,17 +331,15 @@ namespace BaseApp.ViewModels
             formattedRow.Append("|" + CR);
             return formattedRow.ToString();
         }
-        private void StoreDataInNewFile(string newFilePath , Printer printer)
+        private void StoreDataInNewFile(string newFilePath, Printer printer)
         {
-          //  Printer selectedPrinter = (Printer)printer;
             Printer selectedPrinter = PrinterList.FirstOrDefault(p => p.Port == printer.Port);
             try
             {
                 var newWorkbook = new XLWorkbook();
                 var newWorksheet = newWorkbook.AddWorksheet("StoredData");
 
-                // Assuming "Status" column is used to highlight rows
-                var selectedRows = selectedPrinter.ExcelData.Select("Status = 'Acknowledged'");
+                var selectedRows = selectedPrinter.ExcelData.Select("Status = 'Acknowledged'");  // Assuming "Status" column is used to highlight rows
 
                 if (selectedRows.Length > 0)
                 {
@@ -411,11 +361,12 @@ namespace BaseApp.ViewModels
                 System.Windows.MessageBox.Show($"Failed to store data in new file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         // Remove the selected data from the original ExcelData DataTable
         private void RemoveSelectedDataFromOriginal(Printer printer)
         {
             Printer selectedPrinter = PrinterList.FirstOrDefault(p => p.Port == printer.Port);
-        
+
             try
             {
                 var rowsToRemove = selectedPrinter.ExcelData.Select("Status = 'Acknowledged'").ToList();

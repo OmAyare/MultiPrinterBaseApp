@@ -101,7 +101,7 @@ namespace BaseApp.ViewModels
                 }
             }
             catch (Exception ex)
-            {
+            { 
                 Console.WriteLine($"Error in Receive: {ex.Message}");
             }
             return string.Empty;

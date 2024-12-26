@@ -16,7 +16,7 @@ namespace BaseApp.ViewModels
         SettingService ObjSettingService;
         public ICommand OpenFolderDialog { get; set; }
         public ICommand SaveCommand { get; }
-       
+
         public int Id { get; set; }
 
         private string _ipAddress;
@@ -59,15 +59,15 @@ namespace BaseApp.ViewModels
             set { pName = value; OnPropertyChanged(nameof(PName)); }
         }
 
-        private ObservableCollection<BaseApp.ViewModels.Settings> settingList;
-        public ObservableCollection<BaseApp.ViewModels.Settings> SettingList
+        private ObservableCollection<SettingsModel> settingList;
+        public ObservableCollection<SettingsModel> SettingList
         {
             get { return settingList; }
             set { settingList = value; OnPropertyChanged("SettingList"); }
         }
 
-        private Settings _selectedSetting;
-        public Settings SelectedSetting
+        private SettingsModel _selectedSetting;
+        public SettingsModel SelectedSetting
         {
             get => _selectedSetting;
             set
@@ -81,7 +81,7 @@ namespace BaseApp.ViewModels
         {
             ObjSettingService = new SettingService();
 
-            //LoadDataAsync();
+            LoadDataAsync();
             OpenFolderDialog = new DelegateCommand((param) =>
             {
                 using (var folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog())
@@ -93,7 +93,6 @@ namespace BaseApp.ViewModels
                     if (result == System.Windows.Forms.DialogResult.OK)
                     {
                         ExcelPath = folderBrowserDialog.SelectedPath; // Store the selected folder path
-                        //ReadExcel(ExcelPath);
                     }
                 }
             });
@@ -102,14 +101,13 @@ namespace BaseApp.ViewModels
                 try
                 {
                     var allSettings = await Task.Run(() => ObjSettingService.GetAll());
-                    await LoadDataAsync();
+                    LoadDataAsync();
 
-                    // Check for duplicate port in the current SettingList
-                    if (allSettings.Any(s => s.Port == this.Port && s.Id != this.Id))
+                    if (allSettings.Any(s => s.Port == this.Port && s.Id != this.Id))  // Check for duplicate port in the current SettingList
                     {
                         System.Windows.MessageBox.Show($"The port number {this.Port} is already in use. Please enter a different port.",
                                                         "Duplicate Port", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        return;// Stop execution if a duplicate is found
+                        return; // Stop execution if a duplicate is found
                     }
                     var newSetting = new Printer
                     {
@@ -122,7 +120,7 @@ namespace BaseApp.ViewModels
                     bool success = await Task.Run(() => ObjSettingService.Save(newSetting)); // Run database operation in a background thread.
                     if (success)
                     {
-                        await LoadDataAsync(); // Refresh the DataGrid
+                        LoadDataAsync(); // Refresh the DataGrid
                         System.Windows.MessageBox.Show("Settings saved successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
@@ -136,13 +134,13 @@ namespace BaseApp.ViewModels
                 }
             });
         }
-        private async Task LoadDataAsync()
+        private void LoadDataAsync()
         {
             try
             {
-                var data = await Task.Run(() => ObjSettingService.GetAll());
+                var data = ObjSettingService.GetAll().Result;
 
-                SettingList = new ObservableCollection<Settings>(data);
+                SettingList = new ObservableCollection<SettingsModel>(data);
             }
             catch (Exception ex)
             {
