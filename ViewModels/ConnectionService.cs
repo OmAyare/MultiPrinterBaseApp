@@ -26,15 +26,13 @@ namespace BaseApp.ViewModels
         public bool Connect(string ipAddress, int port)
         {
             try
-            {
-                // Check if _client is null, if so, initialize it
-                if (_client == null)
+            {          
+                if (_client == null)   // Check if _client is null, if so, initialize it
                 {
                     _client = new TcpClient();
                 }
-
-                // If the client is not already connected, try to establish a connection
-                if (!_client.Connected)
+          
+                if (!_client.Connected)   // If the client is not already connected, try to establish a connection
                 {
                     _client.Connect(ipAddress, port); // Connect to the server
                     ns = _client.GetStream(); // Get the network stream for communication
@@ -42,16 +40,14 @@ namespace BaseApp.ViewModels
                     return true;
                 }
                 else
-                {
-                    // If already connected, do nothing or handle as needed
-                    ConnectionStatus = "Already connected";
+                { 
+                    ConnectionStatus = "Already connected";   // If already connected, do nothing or handle as needed
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                // Handle connection failure and update connection status
-                ConnectionStatus = $"Failed to connect: {ex.Message}";
+                ConnectionStatus = $"Failed to connect: {ex.Message}";  // Handle connection failure and update connection status
                 return false;
             }
         }
@@ -71,8 +67,7 @@ namespace BaseApp.ViewModels
             }
         }
 
-        // Check if the client is still connected
-        public bool IsConnected => _client?.Connected ?? false;
+        public bool IsConnected => _client?.Connected ?? false;     // Check if the client is still connected
 
         public void Send(string message)
         {
@@ -86,7 +81,6 @@ namespace BaseApp.ViewModels
                 Console.WriteLine($"Error in Send: {ex.Message}");
             }
         }
-
         public async Task<string> Receive()
         {
             try
@@ -106,6 +100,5 @@ namespace BaseApp.ViewModels
             }
             return string.Empty;
         }
-
     }
 }

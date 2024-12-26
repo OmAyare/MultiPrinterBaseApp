@@ -170,7 +170,6 @@ namespace BaseApp.ViewModels
     {
         public event EventHandler CanExecuteChanged;
         private Action DoWork;
-
         public Action<string> ConnectToIp { get; }
 
         public RelayCommand(Action Work)
@@ -194,4 +193,3 @@ namespace BaseApp.ViewModels
         }
     }
 }
-
