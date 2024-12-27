@@ -8,7 +8,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Linq;
 
-
+ 
 namespace BaseApp.ViewModels
 {
     public class Settings : ViewModelBase
